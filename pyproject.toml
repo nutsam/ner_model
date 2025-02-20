@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "ner-model"
+version = "0.1.0"
+description = ""
+authors = ["Patty <patty@dailyview.tw>"]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+nltk = "^3.9.1"
+gdown = "5.2.0"
+tokenizers = ">=0.21,<0.22"
+flair = "0.14.0"
+sacremoses = "0.0.53"
+argostranslate = "1.9.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "8.3.3"
+
+[[tool.poetry.source]]
+name = "torch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "supplemental"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

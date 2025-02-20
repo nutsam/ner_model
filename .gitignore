@@ -1,0 +1,34 @@
+*__pycache__*
+build
+dist
+*lightning_logs*
+*egg-info*
+*exp
+*.so
+*_exp_*
+*_test_*
+*backup
+*.sh
+
+# vscode
+.vscode/
+.pytest_cache
+
+# jupyter notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# mac
+.DS_Store
+
+# env
+.venv
+.env
+poetry.lock
+
+*_log/
+*output*/
+*export*/
+*.ckpt
+.mypy
+tmp/
