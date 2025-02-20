@@ -12,6 +12,7 @@ tokenizers = ">=0.21,<0.22"
 flair = "0.14.0"
 sacremoses = "0.0.53"
 argostranslate = "1.9.6"
+pre-commit-hooks = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "8.3.3"

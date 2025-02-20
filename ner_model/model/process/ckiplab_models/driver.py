@@ -9,16 +9,11 @@ __author__ = "Mu Yang <http://muyang.pro>"
 __copyright__ = "2023 CKIP Lab"
 __license__ = "GPL-3.0"
 
-from typing import (
-    List,
-)
+from typing import List
 
 import numpy as np
 
-from .util import (
-    CkipTokenClassification,
-    NerToken,
-)
+from .util import CkipTokenClassification, NerToken
 
 ################################################################################################################################
 
@@ -278,7 +273,7 @@ class CkipNerChunker(CkipTokenClassification):
                 A list of list of entities (:class:`~.util.NerToken`).
         """
 
-        # Call model     
+        # Call model
         (
             logits,
             index_map,
@@ -286,12 +281,16 @@ class CkipNerChunker(CkipTokenClassification):
 
         # Get labels
         id2label = self.model.config.id2label
-        if_BIOES = any(label.split('-')[0] == 'E' for label in list(id2label.values()))
+        if_BIOES = any(label.split("-")[0] == "E" for label in list(id2label.values()))
 
         # Post-process results
         output_text = []
         if if_BIOES == False:
-            output_text.append(self.finetune_model_of_different_label_postprocess_logic(input_text, logits, index_map, id2label, model_name))
+            output_text.append(
+                self.finetune_model_of_different_label_postprocess_logic(
+                    input_text, logits, index_map, id2label, model_name
+                )
+            )
         else:
             for sent_data in zip(input_text, index_map):
                 output_sent = []
@@ -348,14 +347,14 @@ class CkipNerChunker(CkipTokenClassification):
                                 )
                             )
                         entity_ner = None
-                    
 
                 output_text.append(output_sent)
 
         return output_text
 
-
-    def finetune_model_of_different_label_postprocess_logic(self, input_text, logits, index_map, id2label, model_name):
+    def finetune_model_of_different_label_postprocess_logic(
+        self, input_text, logits, index_map, id2label, model_name
+    ):
         """Call the driver for finetune model of different label method (BIO).
 
         Parameters
@@ -393,21 +392,24 @@ class CkipNerChunker(CkipTokenClassification):
                     logits_index_record = 1
                     label = id2label[np.argmax(logits[logits_index])]
 
-                if label == "O" and record_label.split("-")[0] == "I" and logits_index_record is not None:
+                if (
+                    label == "O"
+                    and record_label.split("-")[0] == "I"
+                    and logits_index_record is not None
+                ):
                     output_sent.append(
-                            NerToken(
-                                word=entity_word,
-                                ner=entity_ner,
-                                idx=(
-                                    entity_idx0,
-                                    index_char + (len(input_char)-1),
-                                ),
-                            )
+                        NerToken(
+                            word=entity_word,
+                            ner=entity_ner,
+                            idx=(
+                                entity_idx0,
+                                index_char + (len(input_char) - 1),
+                            ),
                         )
+                    )
                     record_label = label
                     entity_ner = None
                     continue
-
 
                 if len(label.split("-")) == 2:
                     bioes, ner = label.split("-")

@@ -10,29 +10,13 @@ __copyright__ = "2023 CKIP Lab"
 __license__ = "GPL-3.0"
 
 
-from abc import (
-    ABCMeta,
-    abstractmethod,
-)
-
-from typing import (
-    List,
-    NamedTuple,
-    Optional,
-    Tuple,
-    Union,
-)
-
-from tqdm import tqdm
+from abc import ABCMeta, abstractmethod
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
-
 import torch
-from torch.utils.data import (
-    DataLoader,
-    TensorDataset,
-)
-
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 from transformers import (
     AutoModelForTokenClassification,
     BatchEncoding,
@@ -152,7 +136,8 @@ class CkipTokenClassification(metaclass=ABCMeta):
             input_text = tqdm(input_text, desc="Tokenization")
 
         input_ids_worded = [
-            [self.tokenizer.convert_tokens_to_ids(list(input_word)) for input_word in input_sent] for input_sent in input_text
+            [self.tokenizer.convert_tokens_to_ids(list(input_word)) for input_word in input_sent]
+            for input_sent in input_text
         ]
 
         # Flatten input IDs
@@ -193,7 +178,9 @@ class CkipTokenClassification(metaclass=ABCMeta):
         with torch.no_grad():
             for batch in dataloader:
                 batch = tuple(tensor.to(self.device) for tensor in batch)
-                (batch_logits,) = self.model(**dict(zip(encoded_input.keys(), batch)), return_dict=False)
+                (batch_logits,) = self.model(
+                    **dict(zip(encoded_input.keys(), batch)), return_dict=False
+                )
                 batch_logits = batch_logits.cpu().numpy()[:, 1:, :]  # Remove [CLS]
                 logits.append(batch_logits)
 
@@ -286,7 +273,9 @@ class CkipTokenClassification(metaclass=ABCMeta):
                 + [self.tokenizer.sep_token_id]
                 + [self.tokenizer.pad_token_id] * pad_count
             )
-            attention_mask.append([1] * (token_count + 2) + [0] * pad_count)  # [CLS] & input & [SEP]  # [PAD]s
+            attention_mask.append(
+                [1] * (token_count + 2) + [0] * pad_count
+            )  # [CLS] & input & [SEP]  # [PAD]s
         return padded_input_ids, attention_mask
 
 
