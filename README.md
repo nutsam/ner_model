@@ -1,4 +1,4 @@
-# Text Processing and Named Entity Recognition (NER) Toolkit
+# Text Processing and Named Entity Recognition
 
 This repository provides a Python-based toolkit for text preprocessing, text masking, and Named Entity Recognition (NER) using both English (spaCy) and Chinese (CKIP Transformers). The project is managed using Poetry for dependency management.
 
@@ -13,7 +13,7 @@ This repository provides a Python-based toolkit for text preprocessing, text mas
 ## Installation
 
 ### Prerequisites
-Ensure you have Python installed (>=3.8).
+Ensure you have Python installed (>=3.9,<4.0).
 
 ### Using Poetry
 
@@ -32,7 +32,7 @@ Ensure you have Python installed (>=3.8).
 Download the model first:
 
 ```sh
-python -m spacy download en_core_web_sm
+poetry run python -m spacy download en_core_web_sm
 ```
 
 Run the script to preprocess text, mask sensitive data, and extract named entities:

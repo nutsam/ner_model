@@ -6,10 +6,13 @@ authors = ["Patty <patty@dailyview.tw>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<4.0"
 spacy = "^3.5"
 ckip-transformers = "0.3.4"
 gliner-spacy = "^0.0.11"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
