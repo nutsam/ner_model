@@ -1,27 +1,16 @@
 [tool.poetry]
-name = "ner-model"
+name = "text-preprocessing-ner"
 version = "0.1.0"
-description = ""
+description = "A text preprocessing and Named Entity Recognition (NER) pipeline for English and Chinese."
 authors = ["Patty <patty@dailyview.tw>"]
+license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
-nltk = "^3.9.1"
-gdown = "5.2.0"
-tokenizers = ">=0.21,<0.22"
-flair = "0.14.0"
-sacremoses = "0.0.53"
-argostranslate = "1.9.6"
-pre-commit-hooks = "^5.0.0"
-
-[tool.poetry.dev-dependencies]
-pytest = "8.3.3"
-
-[[tool.poetry.source]]
-name = "torch-cu121"
-url = "https://download.pytorch.org/whl/cu121"
-priority = "supplemental"
+python = "^3.8"
+spacy = "^3.5"
+ckip-transformers = "0.3.4"
+gliner-spacy = "^0.0.11"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

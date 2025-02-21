@@ -1,51 +1,112 @@
-# main.py
-import logging
+import re
+import spacy
+from pprint import pprint
+from collections import defaultdict
+from ckip_transformers.nlp import CkipNerChunker
 
-from ner_model.model.ckip_pipeline import CkipTransformerPipeline
+class TextPreprocessor:
+    def __init__(self, stopwords=None, remove_punctuation=True):
+        self.stopwords = stopwords or set()
+        self.remove_punctuation = remove_punctuation
+    
+    def preprocess(self, text):
+        """
+        進行文本前處理：
+        1. 移除網址
+        2. 移除 HTML 標籤
+        3. 移除特殊字元（可選是否保留標點符號）
+        4. 統一空白
+        5. 移除停用詞
+        """
+        text = re.sub(r'(http|ftp|https)://[^\s]+', '', text)  # 移除網址
+        text = re.sub(r'<[^>]*>', '', text)  # 移除 HTML 標籤
+        
+        if self.remove_punctuation:
+            text = re.sub(r'[^\u4e00-\u9fffA-Za-z0-9\s]', '', text)
+        
+        text = re.sub(r'\s+', ' ', text).strip()  # 統一空白
+        
+        if self.stopwords:
+            text = ' '.join(word for word in text.split() if word not in self.stopwords)
+        
+        return text
 
+class TextMasker:
+    @staticmethod
+    def replace_chinese_with_underscores(text):
+        """將中文替換為相同長度的底線"""
+        pattern = re.compile(r'[\u4e00-\u9fff0-9]+')
+        return pattern.sub(lambda match: '_' * len(match.group(0)), text).replace('\n', '')
 
-def main():
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s - %(message)s")
+    @staticmethod
+    def replace_english_with_underscores(text):
+        """將英文單字替換為相同長度的底線"""
+        pattern = re.compile(r'[A-Za-z]+')
+        return pattern.sub(lambda match: '_' * len(match.group(0)), text).replace('\n', '')
 
-    sample_texts = [
-        "#謝謝🙏 文茜的世界周報 Sisy's World News 陶晶瑩 賈永婕的跑跳人生 胡小禎 李佩甄 隋棠 Sonia Sui 藍心湄 Hsin-Mei Lan 德州媽媽沒有崩潰 瑪麗的象牙塔 MARY in the TOWER 于美人 潘若迪_Funky Dance 李李仁 June Yu 于長君 林柏宏 ØZI Patrick 派翠克 焦凡凡fanfan 婁峻碩 SHOU Melody時尚媽咪",
-        "Toyz原先預定26日晚間在浪live開直播，不過後來轉到YouTube開直播。",
-        "🌟 合作信箱：toyzpr@gmail.com 🌟 我的生活頻道 ：https://www.youtube.com/c/Toyz69 🌟 我的Instagram：https://www.instagram.com/toyzlol 🌟 我的Facebook：https://www.facebook.com/Toyzlau 🌟 浪live直播：https://www.lang.live/main",
-        "☝🏻浪live固定開播日期：2024/4/15(一)起 每周一 21:00 🔎超派直播間浪ID： 1111 還沒有浪live帳號嗎？",
-        "活動當日，中獎者本人抵達活動現場需打開浪live投票紀錄以茲證明，未符合當場失去資格，開放給現場候補粉絲入場。",
-        "大家好，我爆料浪live女主播id是5058976咪子主播散播色情，我會附上截圖照片證據。",
-        "In 2024, everyone is really kind.",
-        "柯文哲參選總統時自信滿滿, 如今柯文哲卻被抓進土城看守所。",
-        "美國參議院針對今天總統布什所提名的勞工部長趙小蘭展開認可聽證會，預料她將會很順利通過參議院支持，成為該國有史以來第一位的華裔女性內閣成員。",
-        "China has dismissed the outcome of Taiwan’s elections, saying the DPP does not represent the mainstream public opinion.",
-        "我很喜歡Adidas今年出的運動裝，每年一定會購買他們的新款。",
-        "My name is Patty Chang.\n我想買許多Nvidia 4070顯卡。",
-        "la mer是春香想要很久的保養品 每次都會跟我唸說想要經典乳霜！",
-        "登錄發票再抽環保好禮🎁 響應世界地球日，買蒲公英商品滿額登錄發票，即可抽Gogoro、AppleWatch等好禮！",
-        "我要買0080這支股票",
-    ]
+class NamedEntityRecognizer:
+    def __init__(self):
+        self.ner_types = {"CARDINAL", "DATE", "EVENT", "FAC", "GPE", "LANGUAGE", "LAW",
+                          "LOC", "MONEY", "NORP", "ORDINAL", "ORG", "PERCENT", "PERSON",
+                          "PRODUCT", "QUANTITY", "TIME", "WORK_OF_ART"}
+        
+        # 載入 spaCy 英文模型
+        self.nlp_en = spacy.load("en_core_web_sm")
+        self.nlp_en.add_pipe("gliner_spacy", config={"labels": list(self.ner_types)})
+        
+        # 載入 CKIP 中文模型
+        self.nlp_zh = CkipNerChunker(model="bert-base")
 
-    pipeline = CkipTransformerPipeline(
-        device_ch=1,
-        device_eng_ner=1,
-        device_eng_pos=1,
-        device_translate=1,
-        batch_size_ch=8,
-        batch_size_en=8,
-        model_name="bert_base",
-        eng_ner_model="eng_ontonotes_large",
-        eng_pos_model="eng_vblagoje_pos",
-        translate_model="translate",
-    )
+    def recognize_english(self, text):
+        doc = self.nlp_en(text)
+        ner_dict = {ner: [] for ner in self.ner_types}
+        
+        for ent in doc.ents:
+            cleaned_text = ent.text.strip().strip('_')
+            if cleaned_text and ent.text == cleaned_text and ent.label_ in self.ner_types:
+                ner_dict[ent.label_].append(cleaned_text)
+        
+        return ner_dict
 
-    entities = pipeline.get_named_entities(
-        texts=sample_texts, use_batch=True, max_length=120, use_delimiter=False, show_progress=False
-    )
+    def recognize_chinese(self, text):
+        result = self.nlp_zh([text])
+        ner_dict = {ner: [] for ner in self.ner_types}
+        
+        for token in result[0]:
+            cleaned_word = token.word.strip().strip('_')
+            if cleaned_word and token.word == cleaned_word:
+                ner_dict[token.ner].append(cleaned_word)
+        
+        return ner_dict
 
-    print("Named Entities:")
-    for idx, entity in entities.items():
-        print(f"Text {idx}: {entity}")
-
+    def merge_results(self, ner_en_dict, ner_zh_dict):
+        merged_dict = defaultdict(list)
+        for d in [ner_en_dict, ner_zh_dict]:
+            for key, value in d.items():
+                merged_dict[key].extend(value)
+        return dict(merged_dict)
 
 if __name__ == "__main__":
-    main()
+    text = """
+    昨天（2024/02/20），在東京Skytree舉辦了一場名為「AI Summit 2024」的科技論壇，吸引了來自 𝕊𝕀𝕃𝕀𝕔𝕆𝕟 𝕍𝕒𝕝𝕝𝕖𝕪 的專家參與。據報導，來自 OpenAI、DeepMind 和 𝔹𝕒𝕚𝕕𝕦 的工程師討論了人工智慧的未來趨勢，其中一項主題是關於 LLM 能否取代人類創造力？
+    🌍 該活動由 NVIDIA 和 TSMC (台積電) 聯合贊助，並且吸引了包括 Microsoft 及 𝒜𝓅𝓅𝓁𝑒 在內的企業代表發表演講。來自新加坡的學者陳博士（Dr. Chen）提到：「AI 在 2024 年的發展將加速，但法規（GDPR & AI Act）仍需進一步完善。」
+    📌 根據數據報告，2023 年 AI 產業的總值達到 $15.7B USD，同比增長 22.5%，其中 OpenAI 的 GPT 模型已擁有 超過 1.2 億 用戶。市場分析公司 Gartner 預測，2025 年 AI 市場將達到 $50B。
+    💰 同時，日本政府宣布將投資 ¥100億 日圓於 AI 研究，並計劃在東京都內建立新的 AI 研究中心（Tokyo AI Research Center）。另外，中國的「天問二號」探測器計劃於 2026 年 登陸火星，這與 NASA 的 Artemis 計畫形成競爭。
+    🔗 更多資訊請參考：https://www.aisummit2024.com/event?id=xyz_1234 或者發送 Email 至 info@aisummit.com 📧。
+    """
+    
+    # 文本前處理
+    preprocessor = TextPreprocessor()
+    cleaned_text = preprocessor.preprocess(text)
+    
+    # 文字遮罩
+    english_masked = TextMasker.replace_chinese_with_underscores(cleaned_text)
+    chinese_masked = TextMasker.replace_english_with_underscores(cleaned_text)
+    
+    # NER 識別
+    ner = NamedEntityRecognizer()
+    ner_en_results = ner.recognize_english(english_masked)
+    ner_zh_results = ner.recognize_chinese(chinese_masked)
+    merged_ner_results = ner.merge_results(ner_en_results, ner_zh_results)
+    
+    pprint(merged_ner_results)
