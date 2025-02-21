@@ -88,20 +88,43 @@ class NamedEntityRecognizer:
 
 if __name__ == "__main__":
     text = """
-    昨天（2024/02/20），在東京Skytree舉辦了一場名為「AI Summit 2024」的科技論壇，吸引了來自 𝕊𝕀𝕃𝕀𝕔𝕆𝕟 𝕍𝕒𝕝𝕝𝕖𝕪 的專家參與。據報導，來自 OpenAI、DeepMind 和 𝔹𝕒𝕚𝕕𝕦 的工程師討論了人工智慧的未來趨勢，其中一項主題是關於 LLM 能否取代人類創造力？
-    🌍 該活動由 NVIDIA 和 TSMC (台積電) 聯合贊助，並且吸引了包括 Microsoft 及 𝒜𝓅𝓅𝓁𝑒 在內的企業代表發表演講。來自新加坡的學者陳博士（Dr. Chen）提到：「AI 在 2024 年的發展將加速，但法規（GDPR & AI Act）仍需進一步完善。」
-    📌 根據數據報告，2023 年 AI 產業的總值達到 $15.7B USD，同比增長 22.5%，其中 OpenAI 的 GPT 模型已擁有 超過 1.2 億 用戶。市場分析公司 Gartner 預測，2025 年 AI 市場將達到 $50B。
-    💰 同時，日本政府宣布將投資 ¥100億 日圓於 AI 研究，並計劃在東京都內建立新的 AI 研究中心（Tokyo AI Research Center）。另外，中國的「天問二號」探測器計劃於 2026 年 登陸火星，這與 NASA 的 Artemis 計畫形成競爭。
-    🔗 更多資訊請參考：https://www.aisummit2024.com/event?id=xyz_1234 或者發送 Email 至 info@aisummit.com 📧。
+        📢 Breaking News | 重大消息！ 🎉
+
+        📅 昨天（𝟮𝟬𝟮𝟱/𝟬𝟮/𝟮𝟬），台灣🇹🇼總統 李安然 (An-Ran Li) 在台北101 🏙 舉行記者會，宣布政府將投資 NT$1️⃣5️⃣0️⃣ 億 用於 AI 發展計畫。該計畫由 行政院科技部 (MOST) 負責，預計於 𝟮𝟬𝟮𝟲 年開始實施。
+
+        🌏 國際企業大戰 AI 領域！ 在矽谷 🌁，Meta、Google DeepMind、𝕺𝖕𝖊𝖓𝕬𝖎 和 阿里巴巴 宣布建立「𝓐𝓘 𝓡𝓮𝓼𝓮𝓪𝓻𝓬𝓱 𝓒𝓸𝓵𝓵𝓪𝓫𝓸𝓻𝓪𝓽𝓲𝓸𝓷」，共同研究大型語言模型 (LLM) 的可解釋性與公平性。同時，日本🇯🇵的 SONY 也宣布投入 ¥500 億 用於 AI 晶片開發。
+
+        🎮 2025 年電競界盛事！ 今年 7 月，英雄聯盟 (LoL) 世界大賽 (Worlds 2025) 將於 美國🏆洛杉磯 Crypto.com Arena 舉辦，來自 北美 (LCS)、歐洲 (LEC)、韓國 (LCK) 和中國 (LPL) 的戰隊將爭奪冠軍🏅。根據數據分析，去年 LCK 總收入達 $75.3M，而 LPL 則高達 ¥5.8B。
+
+        💸 全球市場趨勢 根據 Bloomberg 的最新報告：
+
+        2024 年全球 AI 產業估值達 $𝟮𝟎𝟬B USD 💰，同比增長 35.2% 📈。
+        𝒕𝒉𝒆 S&P 500 指數突破 5,𝟬𝟬𝟬 點，創下歷史新高🏦！
+        2025 年，亞馬遜 (Amazon) 預計投入 €10B 於雲端 AI 計畫 ☁️。
+        🎭 文化與娛樂 Netflix 近日推出了一部新劇《𝕯𝖎𝖌𝖎𝖙𝖆𝖑 𝕯𝖗𝖊𝖆𝖒𝖘》，該劇講述了一名 AI 工程師在虛擬世界與現實之間穿梭的故事📽。評論家認為：「這部劇展示了 21 世紀數位化與 AI 技術的未來。」
+
+        💻 詭異的 AI 錯誤？ 一位 Twitter 用戶 @ai_error💥 指出，ChatGPT 於 𝟮𝟬𝟮𝟰 年 生成了一篇不存在的新聞，導致大量網友誤以為日本政府倒閉 (假的！)。這也讓 OpenAI 宣布將強化 AI 內容真實性驗證。
+
+        📢 聯絡我們 想了解更多詳情？請訪問：
+
+        🌍 https://www.aitechnews.com/?ref=test🔗
+        📧 contact@ai-news.com
+        ☎️ +1-(800)-555-📞-AI24
     """
     
     # 文本前處理
-    preprocessor = TextPreprocessor()
+    preprocessor = TextPreprocessor(remove_punctuation=False)
     cleaned_text = preprocessor.preprocess(text)
+    print(cleaned_text)
+    print('- '* 50)
     
     # 文字遮罩
     english_masked = TextMasker.replace_chinese_with_underscores(cleaned_text)
     chinese_masked = TextMasker.replace_english_with_underscores(cleaned_text)
+    
+    print(english_masked)
+    print('- '* 50)
+    print(chinese_masked)
     
     # NER 識別
     ner = NamedEntityRecognizer()
